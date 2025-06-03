@@ -1,11 +1,10 @@
 streamlit
 pandas
 matplotlib
-requests
-beautifulsoup4
-textblob
 wordcloud
 yfinance
-sqlite3
 scikit-learn
 nltk
+beautifulsoup4
+requests
+textblob
