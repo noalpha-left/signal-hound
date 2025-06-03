@@ -1,3 +1,4 @@
+# alt_data_sentiment_dashboard/app.py
 
 import streamlit as st
 import pandas as pd
@@ -5,55 +6,51 @@ import matplotlib.pyplot as plt
 from fetch_data import fetch_headlines
 from sentiment import analyze_sentiment
 
-st.set_page_config(page_title="🦇 Gotham Sentiment Watcher", layout="wide", initial_sidebar_state="collapsed")
+st.set_page_config(page_title="Sentiment Tracker", layout="wide", initial_sidebar_state="collapsed")
 st.markdown("""
     <style>
     body {
-        background-color: #0f0f0f;
-        color: #f5f5f5;
+        background-color: #121212;
+        color: #eaeaea;
     }
     .stApp {
-        background-color: #0f0f0f;
+        background-color: #121212;
     }
-    .css-1d391kg, .css-1v0mbdj, .css-ffhzg2 {
-        background-color: #1a1a1a !important;
-        color: #f5f5f5 !important;
+    .block-container {
+        padding: 2rem 1rem;
     }
-    .css-1v0mbdj:hover {
-        background-color: #292929 !important;
-    }
-    .stButton>button {
-        background-color: #222;
-        color: #f5f5f5;
-        border-radius: 0px;
-        border: 1px solid #555;
+    .css-1d391kg, .css-1v0mbdj, .css-ffhzg2, .stTextInput, .stButton>button {
+        background-color: #1e1e1e !important;
+        color: #eaeaea !important;
+        border: none !important;
+        border-radius: 10px !important;
     }
     .stButton>button:hover {
-        background-color: #444;
-        border: 1px solid #888;
+        background-color: #2a2a2a !important;
+        border: 1px solid #444 !important;
     }
     .css-1v0mbdj .stTextInput>div>div>input {
-        color: #f5f5f5;
+        color: #eaeaea;
     }
     </style>
 """, unsafe_allow_html=True)
 
-st.title("🦇 Gotham Sentiment Watcher")
+st.title("📊 Sentiment Tracker")
 
 # --- Sidebar ---
-st.sidebar.title("Surveillance Feed")
+st.sidebar.title("Configuration")
 ticker = st.sidebar.text_input("Enter Stock Ticker (e.g., AAPL)", "AAPL")
 
-if st.sidebar.button("Scan Ticker"):
-    with st.spinner("Running intelligence sweep..."):
+if st.sidebar.button("Analyze"):
+    with st.spinner("Processing headlines..."):
         headlines = fetch_headlines(ticker)
         if not headlines:
-            st.error("No signal detected. Try another ticker.")
+            st.error("No headlines found. Try another ticker.")
         else:
             sentiments = analyze_sentiment(headlines)
             df = pd.DataFrame({"Headline": headlines, "Sentiment Score": sentiments})
 
-            st.subheader(f"Sentiment Intel for {ticker}")
+            st.subheader(f"Sentiment Overview for {ticker}")
             st.write(df)
 
             # Metrics
@@ -62,18 +59,47 @@ if st.sidebar.button("Scan Ticker"):
             neg_count = (df["Sentiment Score"] < 0).sum()
 
             col1, col2, col3 = st.columns(3)
-            col1.metric("💀 Average Sentiment", avg_sent)
-            col2.metric("🔺 Uplifting Intel", pos_count)
-            col3.metric("🔻 Grim Headlines", neg_count)
+            col1.metric("Average Sentiment", avg_sent)
+            col2.metric("Positive Headlines", pos_count)
+            col3.metric("Negative Headlines", neg_count)
 
             # Plot
-            st.subheader("📊 Distribution of Sentiment")
-            fig, ax = plt.subplots(facecolor='#0f0f0f')
-            df["Sentiment Score"].hist(bins=20, ax=ax, color='#39ff14', edgecolor='#f5f5f5')
+            st.subheader("Sentiment Score Distribution")
+            fig, ax = plt.subplots(facecolor='#121212')
+            df["Sentiment Score"].hist(bins=20, ax=ax, color='#007ACC', edgecolor='#eaeaea')
             ax.set_title("Sentiment Distribution", color='white')
             ax.set_xlabel("Sentiment Score", color='white')
             ax.set_ylabel("Frequency", color='white')
             ax.tick_params(colors='white')
             st.pyplot(fig)
 else:
-    st.info("Input a ticker and activate scan.")
+    st.info("Enter a ticker and click 'Analyze' to begin.")
+
+# --- fetch_data.py ---
+import requests
+from bs4 import BeautifulSoup
+
+def fetch_headlines(ticker):
+    url = f"https://finviz.com/quote.ashx?t={ticker}"
+    headers = {"User-Agent": "Mozilla/5.0"}
+    r = requests.get(url, headers=headers)
+    soup = BeautifulSoup(r.text, 'html.parser')
+    news_table = soup.find(id='news-table')
+    headlines = []
+
+    if news_table:
+        for row in news_table.findAll('tr'):
+            if row.a:
+                title = row.a.get_text()
+                headlines.append(title)
+
+    return headlines
+
+# --- sentiment.py ---
+from textblob import TextBlob
+
+def analyze_sentiment(texts):
+    sentiment_scores = [TextBlob(text).sentiment.polarity for text in texts]
+    return sentiment_scores
+
+streamlit run app.py
