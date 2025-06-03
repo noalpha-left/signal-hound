@@ -1,3 +1,4 @@
+
 import requests
 from bs4 import BeautifulSoup
 
@@ -11,7 +12,6 @@ def fetch_headlines(ticker):
         news_table = soup.find(id='news-table')
         rows = news_table.findAll('tr')
         headlines = [row.a.get_text() for row in rows if row.a]
-        return headlines[:15]  # Limit to most recent
+        return headlines[:15]
     except Exception:
         return []
-
