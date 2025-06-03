@@ -3,17 +3,15 @@ from bs4 import BeautifulSoup
 
 def fetch_headlines(ticker):
     url = f"https://finviz.com/quote.ashx?t={ticker}"
-    headers = {"User-Agent": "Mozilla/5.0"}
+    headers = {'User-Agent': 'Mozilla/5.0'}
     r = requests.get(url, headers=headers)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    news_table = soup.find(id='news-table')
-    headlines = []
+    soup = BeautifulSoup(r.text, "html.parser")
 
-    if news_table:
-        for row in news_table.findAll('tr'):
-            if row.a:
-                title = row.a.get_text()
-                headlines.append(title)
-
-    return headlines
+    try:
+        news_table = soup.find(id='news-table')
+        rows = news_table.findAll('tr')
+        headlines = [row.a.get_text() for row in rows if row.a]
+        return headlines[:15]  # Limit to most recent
+    except Exception:
+        return []
 
