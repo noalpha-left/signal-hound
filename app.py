@@ -75,31 +75,3 @@ if st.sidebar.button("Analyze"):
 else:
     st.info("Enter a ticker and click 'Analyze' to begin.")
 
-# --- fetch_data.py ---
-import requests
-from bs4 import BeautifulSoup
-
-def fetch_headlines(ticker):
-    url = f"https://finviz.com/quote.ashx?t={ticker}"
-    headers = {"User-Agent": "Mozilla/5.0"}
-    r = requests.get(url, headers=headers)
-    soup = BeautifulSoup(r.text, 'html.parser')
-    news_table = soup.find(id='news-table')
-    headlines = []
-
-    if news_table:
-        for row in news_table.findAll('tr'):
-            if row.a:
-                title = row.a.get_text()
-                headlines.append(title)
-
-    return headlines
-
-# --- sentiment.py ---
-from textblob import TextBlob
-
-def analyze_sentiment(texts):
-    sentiment_scores = [TextBlob(text).sentiment.polarity for text in texts]
-    return sentiment_scores
-
-streamlit run app.py
