@@ -6,3 +6,7 @@ beautifulsoup4
 textblob
 wordcloud
 yfinance
+snscrape 
+sqlite3
+scikit-learn
+nltk
