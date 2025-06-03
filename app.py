@@ -1,5 +1,6 @@
 # alt_data_sentiment_dashboard/app.py
 
+
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,7 +10,6 @@ from fetch_data import fetch_headlines
 from sentiment import analyze_sentiment
 from db_utils import init_db, insert_record, load_sentiment_history
 import datetime
-import snscrape.modules.twitter as sntwitter
 
 st.set_page_config(page_title="Sentiment Tracker", layout="wide", initial_sidebar_state="collapsed")
 
@@ -27,35 +27,19 @@ sentiment_filter = st.sidebar.slider("Minimum Sentiment Score", -100.0, 100.0, -
 if st.sidebar.button("Analyze"):
     with st.spinner("Processing data sources..."):
         headlines = fetch_headlines(ticker)
-
-        twitter_headlines = []
-        try:
-            for tweet in sntwitter.TwitterSearchScraper(f"{ticker} since:2022-01-01").get_items():
-                twitter_headlines.append({"text": tweet.content, "date": tweet.date.date()})
-                if len(twitter_headlines) >= 100:
-                    break
-        except:
-            twitter_headlines.append({"text": "Twitter fetch failed", "date": datetime.datetime.now().date()})
-
-        all_text = headlines + twitter_headlines
+        all_text = headlines
 
         if not all_text:
             st.error("No content found. Try another ticker.")
         else:
             today = datetime.datetime.now()
             processed = []
-            texts_for_analysis = [t["text"] if isinstance(t, dict) else t for t in all_text]
+            texts_for_analysis = [t for t in all_text]
             sentiments = analyze_sentiment(texts_for_analysis)
 
-            for i, item in enumerate(all_text):
-                if isinstance(item, dict):
-                    content = item["text"]
-                    date = item["date"]
-                    source = "Twitter"
-                else:
-                    content = item
-                    date = today.date() - datetime.timedelta(days=i + 1)
-                    source = "Finviz"
+            for i, content in enumerate(all_text):
+                date = today.date() - datetime.timedelta(days=i + 1)
+                source = "Finviz"
 
                 score = sentiments[i] * 100  # Convert to percentage
                 weight = 1 / (i + 1)
