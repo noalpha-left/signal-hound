@@ -1,6 +1,5 @@
 # alt_data_sentiment_dashboard/app.py
 
-
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -9,7 +8,7 @@ import yfinance as yf
 from fetch_data import fetch_headlines
 from sentiment import analyze_sentiment
 from db_utils import init_db, insert_record, load_sentiment_history
-import datetime
+from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Sentiment Tracker", layout="wide", initial_sidebar_state="collapsed")
 
@@ -32,13 +31,13 @@ if st.sidebar.button("Analyze"):
         if not all_text:
             st.error("No content found. Try another ticker.")
         else:
-            today = datetime.datetime.now()
+            today = datetime.now()
             processed = []
             texts_for_analysis = [t for t in all_text]
             sentiments = analyze_sentiment(texts_for_analysis)
 
             for i, content in enumerate(all_text):
-                date = today.date() - datetime.timedelta(days=i + 1)
+                date = today.date() - timedelta(days=i + 1)
                 source = "Finviz"
 
                 score = sentiments[i] * 100  # Convert to percentage
@@ -110,4 +109,3 @@ if st.sidebar.button("Analyze"):
                 st.warning("Neutral zone. Wait for stronger signal.")
 else:
     st.info("Enter a ticker and click 'Analyze' to begin.")
-
