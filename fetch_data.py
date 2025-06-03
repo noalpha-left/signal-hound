@@ -1,4 +1,3 @@
-
 import requests
 from bs4 import BeautifulSoup
 
@@ -12,7 +11,9 @@ def fetch_headlines(ticker):
 
     if news_table:
         for row in news_table.findAll('tr'):
-            title = row.a.get_text()
-            headlines.append(title)
+            if row.a:
+                title = row.a.get_text()
+                headlines.append(title)
 
     return headlines
+
